@@ -25,6 +25,15 @@ class MyApp extends StatelessWidget {
     }
 }
 
+const COLOR_BG = Color(0xFFFFFFFF);
+const COLOR_FG = Color(0xFF000000);
+const COLOR_FG_SECONDARY = Color(0xFFBEBEBE);
+
+const TEXT_STYLE_PRIMARY = TextStyle(color: COLOR_FG, fontSize: 30.0, fontWeight: FontWeight.bold);
+const TEXT_STYLE_SECONDARY = TextStyle(color: COLOR_FG_SECONDARY, fontSize: 20.0);
+
+const DEGREE_SYMBOL = "\u00b0";
+
 class HomeScreen extends StatefulWidget {
     HomeScreen({ Key? key }) : super(key: key);
 
@@ -32,11 +41,15 @@ class HomeScreen extends StatefulWidget {
     HomeScreenState createState() => HomeScreenState();
 }
 
-const COLOR_BG = Color(0xFFFFFFFF);
-const COLOR_FG = Color(0xFF000000);
-const COLOR_FG_SECONDARY = Color(0xFFBEBEBE);
-
 class HomeScreenState extends State<HomeScreen> {
+    late final Future<Map<String, dynamic>> data;
+
+    @override
+    void initState() {
+        super.initState();
+        this.data = fetchWeatherInfo();
+    }
+
     @override
     Widget build(BuildContext ctx) {
         return Scaffold(
@@ -44,42 +57,78 @@ class HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.only(top: 170.0, left: 50.0, right: 50.0),
                 color: COLOR_BG,
                 child: Center(
-                    child: Column(
-                        children: <Widget>[
-                            Text("CHELYABINSK", style: TextStyle(color: COLOR_FG, fontSize: 30.0, fontWeight: FontWeight.bold)),
-                            Text("LIGHT RAIN AND STUFF THIS IS REALLY LONG", textAlign: TextAlign.center, style: TextStyle(color: COLOR_FG_SECONDARY, fontSize: 20.0)),
-                            Container(
-                                margin: EdgeInsets.symmetric(vertical: 60.0),
-                                child: Image(image: AssetImage("assets/sun.png"), height: 200.0),
-                            ),
-                            Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                    child: FutureBuilder<Map<String, dynamic>>(
+                        future: data,
+                        builder: (ctx, snapshot) {
+                            if (!snapshot.hasData) {
+                                return CircularProgressIndicator();
+                            }
+
+                            if (snapshot.hasError) {
+                                return Text("${snapshot.error}");
+                            }
+
+                            Map<String, dynamic> currCond = snapshot.requireData["current_condition"].first;
+                            final String tempC = currCond["temp_C"];
+                            final String feelsLike = currCond["FeelsLikeC"];
+                            final String windDir = currCond["winddir16Point"];
+                            final String windSpeed = currCond["windspeedKmph"];
+                            final String weatherDesc = currCond["weatherDesc"].first["value"];
+                            final String weatherImage = getWeatherImage(currCond["weatherCode"]);
+
+                            return Column(
                                 children: <Widget>[
-                                    SizedBox(width: 5.0),
-                                    Image(image: AssetImage("assets/thermometer.png"), height: 25.0),
-                                    Text(" / ", style: TextStyle(color: COLOR_FG_SECONDARY, fontSize: 20.0)),
-                                    Text("-7\u00b0", style: TextStyle(color: COLOR_FG, fontSize: 30.0, fontWeight: FontWeight.bold)),
-                                    SizedBox(
-                                        width: 50.0,
-                                        child: Text("/ -13\u00b0", style: TextStyle(color: COLOR_FG_SECONDARY, fontSize: 20.0)),
+                                    Text("CHELYABINSK", style: TEXT_STYLE_PRIMARY),
+                                    Text("${weatherDesc.toUpperCase()}", textAlign: TextAlign.center, style: TEXT_STYLE_SECONDARY),
+                                    Container(
+                                        margin: EdgeInsets.symmetric(vertical: 60.0),
+                                        child: Image(image: AssetImage("assets/$weatherImage"), height: 200.0),
+                                    ),
+                                    Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                            SizedBox(width: 10.0),
+                                            Image(image: AssetImage("assets/thermometer.png"), height: 25.0),
+                                            Text(" / ", style: TEXT_STYLE_SECONDARY),
+                                            Text("$tempC$DEGREE_SYMBOL", style: TEXT_STYLE_PRIMARY),
+                                            SizedBox(
+                                                width: 50.0,
+                                                child: Text("/ $feelsLike$DEGREE_SYMBOL", style: TEXT_STYLE_SECONDARY),
+                                            ),
+                                        ],
+                                    ),
+                                    SizedBox(height: 10.0),
+                                    Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                            Image(image: AssetImage("assets/wind.png"), height: 25.0),
+                                            SizedBox(width: 5.0),
+                                            Text("$windSpeed km/h, $windDir direction", style: TEXT_STYLE_SECONDARY),
+                                        ],
                                     ),
                                 ],
-                            ),
-                            SizedBox(height: 10.0),
-                            Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                    Image(image: AssetImage("assets/wind.png"), height: 25.0),
-                                    SizedBox(width: 5.0),
-                                    Text("100 km/h, NNW direction", style: TextStyle(color: COLOR_FG_SECONDARY, fontSize: 20.0)),
-                                ],
-                            ),
-                        ],
+                            );
+                        }
                     ),
                 ),
             ),
         );
     }
+}
+
+Future<Map<String, dynamic>> fetchWeatherInfo() async {
+    HttpClient c = HttpClient();
+
+    HttpClientRequest req = await c.getUrl(
+        Uri.parse("https://wttr.in/chelyabinsk?format=j1")
+    );
+    HttpClientResponse res = await req.close();
+
+    c.close();
+
+    return await res.transform(utf8.decoder)
+        .transform(json.decoder)
+        .first as Map<String, dynamic>;
 }
 
 const Map<String, String> WWO_CODE = {
@@ -133,7 +182,7 @@ const Map<String, String> WWO_CODE = {
     "395": "HeavySnowShowers",
 };
 
-const Map<String, String> WEATHER_SYMBOL = {
+const Map<String, String> WEATHER_IMAGE = {
     "Sunny":               "sun.png",
 
     "PartlyCloudy":        "partly-cloudy.png",
@@ -158,7 +207,9 @@ const Map<String, String> WEATHER_SYMBOL = {
     "HeavySnowShowers":    "snow.png",
 
     "Fog":                 "fog.png",
-
-    "Unknown":             "unknown.png",
 };
 
+const WEATHER_IMAGE_UNKNOWN = "unknown.png";
+
+String getWeatherImage(String code) =>
+    WEATHER_IMAGE[WWO_CODE[code]] ?? WEATHER_IMAGE_UNKNOWN;
