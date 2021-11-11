@@ -10,7 +10,7 @@ void main() {
         statusBarIconBrightness: Brightness.dark,
     ));
 
-    return runApp(MyApp());
+    runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
