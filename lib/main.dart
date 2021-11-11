@@ -53,30 +53,34 @@ class HomeScreenState extends State<HomeScreen> {
     @override
     Widget build(BuildContext ctx) {
         return Scaffold(
-            body: Container(
-                padding: EdgeInsets.only(top: 170.0, left: 50.0, right: 50.0),
-                color: COLOR_BG,
-                child: Center(
-                    child: FutureBuilder<Map<String, dynamic>>(
-                        future: data,
-                        builder: (ctx, snapshot) {
-                            if (!snapshot.hasData) {
-                                return CircularProgressIndicator();
-                            }
+            body: FutureBuilder<Map<String, dynamic>>(
+                future: data,
+                builder: (ctx, snapshot) {
+                    if (snapshot.hasError) {
+                        return Center(
+                            child: Text("${snapshot.error}"),
+                        );
+                    }
 
-                            if (snapshot.hasError) {
-                                return Text("${snapshot.error}");
-                            }
+                    if (!snapshot.hasData) {
+                        return Center(
+                            child: CircularProgressIndicator(color: COLOR_FG),
+                        );
+                    }
 
-                            Map<String, dynamic> currCond = snapshot.requireData["current_condition"].first;
-                            final String tempC = currCond["temp_C"];
-                            final String feelsLike = currCond["FeelsLikeC"];
-                            final String windDir = currCond["winddir16Point"];
-                            final String windSpeed = currCond["windspeedKmph"];
-                            final String weatherDesc = currCond["weatherDesc"].first["value"];
-                            final String weatherImage = getWeatherImage(currCond["weatherCode"]);
+                    Map<String, dynamic> currCond = snapshot.requireData["current_condition"].first;
+                    final String tempC = currCond["temp_C"];
+                    final String feelsLike = currCond["FeelsLikeC"];
+                    final String windDir = currCond["winddir16Point"];
+                    final String windSpeed = currCond["windspeedKmph"];
+                    final String weatherDesc = currCond["weatherDesc"].first["value"];
+                    final String weatherImage = getWeatherImage(currCond["weatherCode"]);
 
-                            return Column(
+                    return Container(
+                        padding: EdgeInsets.only(top: 170.0, left: 50.0, right: 50.0),
+                        color: COLOR_BG,
+                        child: Center(
+                            child: Column(
                                 children: <Widget>[
                                     Text("CHELYABINSK", style: TEXT_STYLE_PRIMARY),
                                     Text("${weatherDesc.toUpperCase()}", textAlign: TextAlign.center, style: TEXT_STYLE_SECONDARY),
@@ -107,10 +111,10 @@ class HomeScreenState extends State<HomeScreen> {
                                         ],
                                     ),
                                 ],
-                            );
-                        }
-                    ),
-                ),
+                            ),
+                        ),
+                    );
+                }
             ),
         );
     }
