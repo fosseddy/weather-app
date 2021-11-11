@@ -42,7 +42,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-    late final Future<Map<String, dynamic>> data;
+    late Future<Map<String, dynamic>> data;
 
     @override
     void initState() {
@@ -76,39 +76,55 @@ class HomeScreenState extends State<HomeScreen> {
                     final String weatherDesc = currCond["weatherDesc"].first["value"];
                     final String weatherImage = getWeatherImage(currCond["weatherCode"]);
 
-                    return Container(
-                        padding: EdgeInsets.only(top: 170.0, left: 50.0, right: 50.0),
-                        color: COLOR_BG,
-                        child: Center(
-                            child: Column(
+                    return RefreshIndicator(
+                        color: COLOR_FG,
+                        backgroundColor: COLOR_BG,
+                        onRefresh: () async {
+                            var res = await fetchWeatherInfo();
+                            setState(() {
+                                data = Future.value(res);
+                            });
+                        },
+                        child: Container(
+                            color: COLOR_BG,
+                            child: ListView(
                                 children: <Widget>[
-                                    Text("CHELYABINSK", style: TEXT_STYLE_PRIMARY),
-                                    Text("${weatherDesc.toUpperCase()}", textAlign: TextAlign.center, style: TEXT_STYLE_SECONDARY),
                                     Container(
-                                        margin: EdgeInsets.symmetric(vertical: 60.0),
-                                        child: Image(image: AssetImage("assets/$weatherImage"), height: 200.0),
-                                    ),
-                                    Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                            SizedBox(width: 10.0),
-                                            Image(image: AssetImage("assets/thermometer.png"), height: 25.0),
-                                            Text(" / ", style: TEXT_STYLE_SECONDARY),
-                                            Text("${tempC + DEGREE_SYMBOL}", style: TEXT_STYLE_PRIMARY),
-                                            SizedBox(
-                                                width: 50.0,
-                                                child: Text("/ ${feelsLike + DEGREE_SYMBOL}", style: TEXT_STYLE_SECONDARY),
+                                        padding: EdgeInsets.only(top: 170.0, left: 50.0, right: 50.0),
+                                        child: Center(
+                                            child: Column(
+                                                children: <Widget>[
+                                                    Text("CHELYABINSK", style: TEXT_STYLE_PRIMARY),
+                                                    Text("${weatherDesc.toUpperCase()}", textAlign: TextAlign.center, style: TEXT_STYLE_SECONDARY),
+                                                    Container(
+                                                        margin: EdgeInsets.symmetric(vertical: 60.0),
+                                                        child: Image(image: AssetImage("assets/$weatherImage"), height: 200.0),
+                                                    ),
+                                                    Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: <Widget>[
+                                                            SizedBox(width: 10.0),
+                                                            Image(image: AssetImage("assets/thermometer.png"), height: 25.0),
+                                                            Text(" / ", style: TEXT_STYLE_SECONDARY),
+                                                            Text("${tempC + DEGREE_SYMBOL}", style: TEXT_STYLE_PRIMARY),
+                                                            SizedBox(
+                                                                width: 50.0,
+                                                                child: Text("/ ${feelsLike + DEGREE_SYMBOL}", style: TEXT_STYLE_SECONDARY),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                    SizedBox(height: 10.0),
+                                                    Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: <Widget>[
+                                                            Image(image: AssetImage("assets/wind.png"), height: 25.0),
+                                                            SizedBox(width: 5.0),
+                                                            Text("$windSpeed km/h, $windDir direction", style: TEXT_STYLE_SECONDARY),
+                                                        ],
+                                                    ),
+                                                ],
                                             ),
-                                        ],
-                                    ),
-                                    SizedBox(height: 10.0),
-                                    Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                            Image(image: AssetImage("assets/wind.png"), height: 25.0),
-                                            SizedBox(width: 5.0),
-                                            Text("$windSpeed km/h, $windDir direction", style: TEXT_STYLE_SECONDARY),
-                                        ],
+                                        ),
                                     ),
                                 ],
                             ),
