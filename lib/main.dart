@@ -94,10 +94,10 @@ class HomeScreenState extends State<HomeScreen> {
                                             SizedBox(width: 10.0),
                                             Image(image: AssetImage("assets/thermometer.png"), height: 25.0),
                                             Text(" / ", style: TEXT_STYLE_SECONDARY),
-                                            Text("$tempC$DEGREE_SYMBOL", style: TEXT_STYLE_PRIMARY),
+                                            Text("${tempC + DEGREE_SYMBOL}", style: TEXT_STYLE_PRIMARY),
                                             SizedBox(
                                                 width: 50.0,
-                                                child: Text("/ $feelsLike$DEGREE_SYMBOL", style: TEXT_STYLE_SECONDARY),
+                                                child: Text("/ ${feelsLike + DEGREE_SYMBOL}", style: TEXT_STYLE_SECONDARY),
                                             ),
                                         ],
                                     ),
@@ -215,5 +215,6 @@ const Map<String, String> WEATHER_IMAGE = {
 
 const WEATHER_IMAGE_UNKNOWN = "unknown.png";
 
-String getWeatherImage(String code) =>
-    WEATHER_IMAGE[WWO_CODE[code]] ?? WEATHER_IMAGE_UNKNOWN;
+String getWeatherImage(String code) {
+    return WEATHER_IMAGE[WWO_CODE[code]] ?? WEATHER_IMAGE_UNKNOWN;
+}
