@@ -1,2 +1,2 @@
 # Weather App
-[[weather-app.jpg|width=300px]]
+<img src="weather-app.jpg" width="300">
