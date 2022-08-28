@@ -229,8 +229,6 @@ const Map<String, String> WEATHER_IMAGE = {
     "Fog":                 "fog.png",
 };
 
-const WEATHER_IMAGE_UNKNOWN = "unknown.png";
-
 String getWeatherImage(String code) {
-    return WEATHER_IMAGE[WWO_CODE[code]] ?? WEATHER_IMAGE_UNKNOWN;
+    return WEATHER_IMAGE[WWO_CODE[code]] ?? "unknown.png";
 }
